@@ -1,0 +1,135 @@
+//TO RUN:       Insert the course title in column A at the same row as the first assignment.
+//              Insert "Avg/Sum" in column B 1 row beneath the last assignment.
+//TO REFORMAT:  Delete the cell in column E of the row you want to reformat, as well as the cell in column E of the first 
+//              row  of that course.
+
+function formatTwoPointO() 
+{
+ var ss = SpreadsheetApp.getActiveSheet();
+ var rangeCell;
+ var cellValue;
+ var cellFormula;
+ var lastRow = ss.getLastRow();
+ var courseHeader = "";
+ var cellValue = "";
+ var d = 0;
+ const newRows = [];
+
+ //Runs through entire document and records new rows (that need formatting)
+ for (var i = 2; i <= lastRow; i++)
+ {
+   //Records the row number of rows with no formulas. 
+   rangeCell = ss.getRange("E" + i);
+   cellFormula = rangeCell.getFormula();
+
+
+   if (cellFormula == "")
+   { 
+     //If the row is the first row in a course, records "Course Header" in the line (within the array) before the row  number
+     rangeCell = ss.getRange("A" + i);
+     cellValue = rangeCell.getValue();
+     
+     if (cellValue != "")
+     {
+       newRows[d] = "Course Header";
+       d++;
+       newRows[d] = i;
+       d++;
+
+       continue;
+     }
+
+     //If the row is an Avg/Sum row, records "Avg/Sum" in the line before the row number
+     rangeCell = ss.getRange("B" + i);
+     cellValue = rangeCell.getValue();
+
+     if (cellValue == "Avg/Sum")
+     {
+       newRows[d] = "Avg/Sum" 
+       d++;
+       newRows[d] = i;
+       d++;
+
+       continue;
+     }
+     
+     //Records all the regular rows' numbers
+     newRows[d] = i;
+     d++;
+   }
+ }
+
+ //Formats the new rows
+ for (d = 0; Boolean(newRows[d]); d++)
+ {
+
+   //Identifies the course header row for Avg/Sum formatting purposes
+   if (newRows[d] == "Course Header")
+   {
+
+     d++;
+     courseHeader = newRows[d];
+
+     //Formats all the regular rows
+     i = newRows[d];
+     rangeCell = ss.getRange("E" + i);
+     rangeCell.setFormula("=MULTIPLY(C" + i + ", D" + i + ")");
+
+     rangeCell = ss.getRange("F" + i);
+     rangeCell.setFormula("=IF(D" + i + ',C' + i + "-E" + i + ',0)');
+
+     rangeCell = ss.getRange("I" + i);
+     rangeCell.setFormula("=IF(D" + i + ",C" + i + ',"")');
+     rangeCell.setFontColor("white");
+
+     continue;
+   }
+
+   //Formats Avg/Sum rows
+   if (newRows[d] == "Avg/Sum")
+   {
+     d++;
+     i = newRows[d];
+
+     rangeCell = ss.getRange("C" + i);
+     rangeCell.setFormula("=SUM(C" + courseHeader + ":C" + (i - 1) + ")");
+
+     rangeCell = ss.getRange("D" + i);
+     rangeCell.setFormula("=IF(I" + i + ",E" + i + "/I" + i + ",0)");
+
+     rangeCell = ss.getRange("E" + i);
+     rangeCell.setFormula("=SUM(E" + courseHeader + ":E" + (i - 1) + ")");
+
+     rangeCell = ss.getRange("F" + i);
+     rangeCell.setFormula("=SUM(F" + courseHeader + ":F" + (i - 1) + ")");
+
+     rangeCell = ss.getRange("G" + i);
+     rangeCell.setFormula("=100%-F" + i);
+
+     rangeCell = ss.getRange("H" + i);
+     rangeCell.setFormula("=E" + i);
+
+     rangeCell = ss.getRange("C" + i + ":H" + i);
+     rangeCell.setFontWeight("bold");
+
+     //Writes the sum of the weights of assignments that have been marked and percent earned in white (so it is not seen)
+     rangeCell = ss.getRange("I" + i);
+     rangeCell.setFormula("=SUM(I" + courseHeader + ":I" + (i - 1) + ")");
+     rangeCell.setFontColor("white");
+     
+     continue;
+   }
+
+   //Formats all the regular rows
+   i = newRows[d];
+   rangeCell = ss.getRange("E" + i);
+   rangeCell.setFormula("=MULTIPLY(C" + i + ", D" + i + ")");
+
+   rangeCell = ss.getRange("F" + i);
+   rangeCell.setFormula("=IF(D" + i + ',C' + i + "-E" + i + ',"")');
+
+   rangeCell = ss.getRange("I" + i);
+   rangeCell.setFormula("=IF(D" + i + ",C" + i + ',"")');
+   rangeCell.setFontColor("white");
+ }
+}
